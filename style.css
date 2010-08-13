@@ -1,0 +1,122 @@
+
+#m {
+    width:688px;
+    margin:10px auto;
+    border:1px solid #dedede;
+    background:#f1f1f1;
+}
+
+h2 {
+    margin:0; padding:5px 10px;
+    border-bottom:1px solid #dedede;
+    font-size:1.125em;
+}
+
+h2 span {
+    color:#24a31e;
+}
+
+#a, #z {
+    border-top:1px solid #fff;
+    float:left;
+}
+
+#a {
+    width:195px;
+    padding:10px 2px;
+    border-right:1px solid #dedede;
+}
+
+#w, #j, #k, #c {
+    margin:10px;
+    display:block;
+    padding:5px;
+    background:#f9f9f9;
+    border:1px solid #dedede;
+}
+
+#c {
+    margin:0 auto 5px;
+}
+
+#a div:not(#i) {
+    clear:both;
+    display:block;
+    line-height:1.5em;
+    padding:7px 10px;
+}
+
+input[type='number'],
+input[type='text']  {
+    float:right;
+}
+
+input[type='number'] {
+    width:40px;
+}
+
+input[type='radio'] {
+    margin-right:5px;
+}
+
+#fc > * {
+    display:block;
+    float:left;
+    margin:10px 5px;
+}
+
+#z {
+    width:468px;
+    padding:0 10px;
+}
+
+h3 {
+    font-size:1em;
+    text-align:center;
+    text-shadow:#fff 1px 1px 0;
+    margin:10px;
+}
+
+#o {
+    float:left;
+    width:226px;
+}
+
+#l {
+    float:left;
+    width:242px;
+}
+
+#j, #k {
+    margin:0 0 10px;
+    float:left;
+}
+
+#k {
+    margin-left:0;
+    border-left-width:0;
+}
+
+#tp {
+    clear:both;
+    padding-top:15px;
+}
+
+table {
+    clear:both;
+    border-collapse:collapse;
+    margin:10px 5px;
+}
+td {
+    border:1px solid #fff;
+    width:10px; height:10px;
+}
+
+#sc td {
+    width:20px; height:20px;
+}
+
+.c {
+    clear:both;
+}
+
