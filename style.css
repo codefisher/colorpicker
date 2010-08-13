@@ -75,6 +75,7 @@ h3 {
     text-align:center;
     text-shadow:#fff 1px 1px 0;
     margin:10px;
+    clear:both;
 }
 
 #o {
@@ -103,9 +104,7 @@ h3 {
 }
 
 table {
-    clear:both;
     border-collapse:collapse;
-    margin:10px 5px;
 }
 td {
     border:1px solid #fff;
@@ -120,3 +119,15 @@ td {
     clear:both;
 }
 
+#tp {
+    position:relative;
+    margin:10px 5px;
+}
+
+#sp {
+    border:1px solid #000;
+    width:16px;
+    height:13px;
+    position:absolute;
+    display:none;
+}
