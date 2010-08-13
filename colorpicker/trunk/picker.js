@@ -14,12 +14,13 @@
         inputTag = "<input />", tdTag = "<td/>", trTag = "<tr/>",
 
         RGBmax = 255, HSVmax = 100,
-        inputs = [["Red", RGBmax], ["Green", RGBmax], ["Blue", RGBmax], ["Hue", 360], ["Saturation", HSVmax], ["Value", HSVmax]],
+        inputs = [["Hue", 360], ["Saturation", HSVmax], ["Value", HSVmax],
+                  ["Red", RGBmax], ["Green", RGBmax], ["Blue", RGBmax]],
         
-primaryColors = decode("N5N50S0S5N0"), paletteColors = decode("B;MQS:B@;KK5<KG7BA0QM@QS3CE;H=98KMCI31H?4HLGOD26D:>B5SO@?PG4C?9DE;DQF6B;0DG9PS?C>:C=FBDG>O;1BF4I>;NK5D65LH4LH81HAAJL4=?@6>@6IA1H81CSFH>AJDABCG6NA3JM=6EAHQ5==;7N3EN:9NA;IL5<C1<PA6O@0JF3NSMN7GJJ;CP58IG2CM8<SMJJ5CD@7O2>QGFOG5KQ4CJ9=P?7N28B?:NL:HR5EQ:<P;6<@3IM3CSGIC5<KG>K=7IA@NF3JQ3<>:LO87H12IF4NF@HK9>P4@R46641<E4JS@CJ:6C80RB0");
+primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = decode("B;MQS:B@;KK5<KG7BA0QM@QS3CE;H=98KMCI31H?4HLGOD26D:>B5SO@?PG4C?9DE;DQF6B;0DG9PS?C>:C=FBDG>O;1BF4I>;NK5D65LH4LH81HAAJL4=?@6>@6IA1H81CSFH>AJDABCG6NA3JM=6EAHQ5==;7N3EN:9NA;IL5<C1<PA6O@0JF3NSMN7GJJ;CP58IG2CM8<SMJJ5CD@7O2>QGFOG5KQ4CJ9=P?7N28B?:NL:HR5EQ:<P;6<@3IM3CSGIC5<KG>K=7IA@NF3JQ3<>:LO87H12IF4NF@HK9>P4@R46641<E4JS@CJ:6C80RB0");
 
     function getHexColor(value, index) {
-        return "#" + value.substr(index*3, 3);
+        return "#" + value.substr(index*3, 3).replace(/(.)(.)(.)/, "$1$1$2$2$3$3");
     }
 
     function decode(text) {
@@ -51,6 +52,7 @@ primaryColors = decode("N5N50S0S5N0"), paletteColors = decode("B;MQS:B@;KK5<KG7B
         return tmp < 58 ? tmp-48 : tmp < 71 ? tmp-55 : tmp-87;
     }*/
     function getRGB(hex) {
+        hex = hex.replace("#", "");
         return  [hex2dec(hex[0]) * 16 + hex2dec(hex[1]),
                  hex2dec(hex[2]) * 16 + hex2dec(hex[3]),
                  hex2dec(hex[4]) * 16 + hex2dec(hex[5])];
@@ -83,7 +85,7 @@ primaryColors = decode("N5N50S0S5N0"), paletteColors = decode("B;MQS:B@;KK5<KG7B
     function getSaturation(r, g, b) {
         var M = max(r, g, b),
             C = M - min(r, g, b);
-        return round(HSVmax * (!C ? 0 : C / M));
+        return round(HSVmax * (C ? C / M : 0));
     }
 
     function solveRGB(r, g, b) {
@@ -121,7 +123,14 @@ primaryColors = decode("N5N50S0S5N0"), paletteColors = decode("B;MQS:B@;KK5<KG7B
         tmp = $(trTag);
         for(j = 0; j < 36; j++) {
              color = getHexColor(paletteColors, j+i*36);
-             $(tdTag, {"class": color, "style": "background:" + color}).appendTo(tmp);
+             colorPaletteItem[color] = [i, j];
+             $(tdTag, {
+                "class": color, 
+                "style": "background:" + color,
+                click: function (event) {
+                    updateColor.apply(null, getRGB(event.currentTarget.className));
+                }
+             }).appendTo(tmp);
         }
         $("#p").append(tmp);
     }
@@ -204,12 +213,23 @@ primaryColors = decode("N5N50S0S5N0"), paletteColors = decode("B;MQS:B@;KK5<KG7B
         currentCtx.restore();
     }
 
+    function setPalette(hex) {
+        var item = $("#sp"), pos = colorPaletteItem[hex];
+        if(pos) {
+            item.css({background: hex, left: pos[1]*12.70-2,
+                      top: pos[0]*10+13, display: "block"});
+        } else {
+            item.css("display", "none");
+        }
+    }
+
     function updateColor(r, g, b) {
-        currentColor = [r, g, b];
+        newColor = currentColor, currentColor = [r, g, b];
         var currentHsv = solveRGB(r, g, b), 
             nextHsv = solveRGB.apply(null, newColor),
             boxValues = currentColor.concat(currentHsv);
 
+        setPalette(getHex(r, g, b));
         setWheel.apply(null, currentHsv);
         setCurrent.apply(null, currentColor.concat(newColor));
         hexNode.value = getHex(r, g, b);
@@ -217,10 +237,12 @@ primaryColors = decode("N5N50S0S5N0"), paletteColors = decode("B;MQS:B@;KK5<KG7B
             inputBoxes[i].val(boxValues[i]);
         }
     }
+
+    //updateColor.apply(null, solveHSV(360, 100, 100));
     function s(i) {
         updateColor.apply(null, solveHSV(i%360, 100, 100));
-        setTimeout(function() { s(i+1) }, 10);
+        setTimeout(function() { s(i+1) }, 100);
     }
-    s(0);
+    //s(0);
     
-})(document, "0369cf");
+})(document, "0369CF");
