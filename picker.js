@@ -1,15 +1,15 @@
 (function(document, chars){
 
     // once I am happy, hard code radius and width
-    var wheelCtx = $("#w")[0].getContext("2d"),
+    var wheel = $("#w"), wheelCtx = wheel[0].getContext("2d"),
         currentCtx = $("#c")[0].getContext("2d"),
         hexNode = $("#x")[0], inputBoxes = [],
         radius = 82, i = 0, width = 16, inner = radius-(width/2), color,
+        wheelDown = false, tringaleDown = false,
+        ma = Math, pi = ma.PI, round = ma.round, abs = ma.abs, max = ma.max, min = ma.min, floor = ma.floor, sin = ma.sin, cos = ma.cos, tan = ma.tan, sqrt = ma.sqrt, pow = ma.pow, atan = ma.atan2,
 
-        ma = Math, pi = ma.PI, round = ma.round, abs = ma.abs, max = ma.max, min = ma.min, floor = ma.floor, sin = ma.sin, cos = ma.cos,
-
-        currentColor = [255, 0, 0], newColor = [255, 0, 0],
-        
+        currentColor = [255, 0, 0], newColor = currentColor,
+        hex3match = /(.)(.)(.)/, hex3replace = "$1$1$2$2$3$3",
         hexChars = "0123456789ABCDEF", inputBox = $("#i"), tmp, j,
         inputTag = "<input />", tdTag = "<td/>", trTag = "<tr/>",
 
@@ -20,7 +20,7 @@
 primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = decode("B;MQS:B@;KK5<KG7BA0QM@QS3CE;H=98KMCI31H?4HLGOD26D:>B5SO@?PG4C?9DE;DQF6B;0DG9PS?C>:C=FBDG>O;1BF4I>;NK5D65LH4LH81HAAJL4=?@6>@6IA1H81CSFH>AJDABCG6NA3JM=6EAHQ5==;7N3EN:9NA;IL5<C1<PA6O@0JF3NSMN7GJJ;CP58IG2CM8<SMJJ5CD@7O2>QGFOG5KQ4CJ9=P?7N28B?:NL:HR5EQ:<P;6<@3IM3CSGIC5<KG>K=7IA@NF3JQ3<>:LO87H12IF4NF@HK9>P4@R46641<E4JS@CJ:6C80RB0");
 
     function getHexColor(value, index) {
-        return "#" + value.substr(index*3, 3).replace(/(.)(.)(.)/, "$1$1$2$2$3$3");
+        return "#" + value.substr(index*3, 3).replace(hex3match, hex3replace);
     }
 
     function decode(text) {
@@ -54,7 +54,7 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
     function getRGB(hex) {
         hex = hex.replace("#", "").toUpperCase();
         if(hex.length == 3) {
-            hex = hex.replace(/(.)(.)(.)/, "$1$1$2$2$3$3");
+            hex = hex.replace(hex3match, hex3replace);
         }
         if(hex.length == 6) {
             return  [hex2dec(hex[0]) * 16 + hex2dec(hex[1]),
@@ -167,12 +167,55 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         gradient.addColorStop(1, g2);
         return gradient;
     }
-
-    function setWheel(h, s, b) {
+    function angleDistance(event) {
+        var pos = wheel.position(),
+            x = event.pageX-pos.left-104,
+            y = event.pageY-pos.top-104,
+            angle = mod(atan(-y, x)/pi*180, 360),
+            distance = sqrt(x*x+y*y);
+        return [angle, distance];
+    }
+    function setWheelCurrent(angle) {
+        wheelDown = true;
+        tmp = solveRGB.apply(null, currentColor);
+        tmp[0] = angle;
+        setWheel.apply(null, tmp);
+        setCurrent.apply(null, currentColor.concat(solveHSV.apply(null, tmp)));
+    }
+    wheel.mousedown(function (event) {
+        var items = angleDistance(event),
+            angle = items[0],
+            distance = items[1];
+        if(inner < distance && distance < inner+width){
+            wheelDown = true;
+            setWheelCurrent(angle);
+        }     
+    });
+    $(document).mousemove(function (event) {
+        var items = angleDistance(event),
+            angle = items[0],
+            distance = items[1];
+        if(wheelDown == true) {
+            setWheelCurrent(angle);
+        }
+    });
+    $(document).mouseup(function (event) {
+        var items = angleDistance(event),
+            angle = items[0],
+            distance = items[1];
+        if(wheelDown == true) {
+            wheelDown = false;
+            tmp = solveRGB.apply(null, currentColor);
+            tmp[0] = angle;
+            updateColor.apply(null, solveHSV.apply(null, tmp));
+        }
+    });
+    function setWheel(h, s, v) {
         var topX = inner*cos(pi*2/3), topY = inner*sin(pi*2/3),
             bottomX = inner*cos(pi*4/3), bottomY = inner*sin(pi*4/3),
             horizontal = inner-topX,
-            vertical = topY-bottomY
+            vertical = topY-bottomY, size = inner-bottomX, tsize = sqrt(size*size+topY*topY);
+
         wheelCtx.save();
         wheelCtx.lineWidth = width;
         wheelCtx.clearRect(0, 0, 196, 196);
@@ -202,6 +245,14 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         wheelCtx.beginPath();
         wheelCtx.moveTo(inner, 0);
         wheelCtx.lineTo(inner+width, 0);
+        wheelCtx.stroke();
+
+        wheelCtx.lineWidth = 2;
+        wheelCtx.beginPath();
+        var distance = size*v/100, across = -distance*tan(pi/6)*(s-50)/100*2;
+        wheelCtx.arc(topX+(cos(pi/3)*(distance))-(cos(pi/6)*across),
+                     -topY+(sin(pi/3)*(distance))+(sin(pi/6)*across),5,0,pi *2 ,true);
+        wheelCtx.closePath();
         wheelCtx.stroke();
 
         wheelCtx.restore();
@@ -251,10 +302,10 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
     }
 
     function updateColor(r, g, b, input) {
-        newColor = currentColor, currentColor = [r, g, b];
+        currentColor = [r, g, b], newColor = currentColor;
         var currentHsv = solveRGB(r, g, b), 
             nextHsv = solveRGB.apply(null, newColor),
-            boxValues = currentColor.concat(currentHsv);
+            boxValues = currentHsv.concat(currentColor);
 
         setPalette(getHex(r, g, b));
         setWheel.apply(null, currentHsv);
@@ -269,10 +320,10 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
 
     
     function s(i) {
-        updateColor.apply(null, solveHSV(i%360, 100, 100));
-        setTimeout(function() { s(i+1) }, 100);
+        updateColor.apply(null, solveHSV(0, i%100, 50));
+        setTimeout(function() { s(i+1) }, 0);
     }
     //s(0);
-    
-    updateColor(255, 0, 0);
+    updateColor.apply(null, solveHSV(0, 100, 40));
+    //updateColor(255, 0, 0);
 })(document, "0369CF");
