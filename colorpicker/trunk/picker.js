@@ -52,10 +52,16 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         return tmp < 58 ? tmp-48 : tmp < 71 ? tmp-55 : tmp-87;
     }*/
     function getRGB(hex) {
-        hex = hex.replace("#", "");
-        return  [hex2dec(hex[0]) * 16 + hex2dec(hex[1]),
-                 hex2dec(hex[2]) * 16 + hex2dec(hex[3]),
-                 hex2dec(hex[4]) * 16 + hex2dec(hex[5])];
+        hex = hex.replace("#", "").toUpperCase();
+        if(hex.length == 3) {
+            hex = hex.replace(/(.)(.)(.)/, "$1$1$2$2$3$3");
+        }
+        if(hex.length == 6) {
+            return  [hex2dec(hex[0]) * 16 + hex2dec(hex[1]),
+                     hex2dec(hex[2]) * 16 + hex2dec(hex[3]),
+                     hex2dec(hex[4]) * 16 + hex2dec(hex[5])];
+        }
+        return null;
     }
 
     function minMax(value, minValue, maxValue) {
@@ -134,6 +140,20 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         }
         $("#p").append(tmp);
     }
+    $(hexNode).keydown(function(event) {
+        var code = event.keyCode;
+        if(code == 8 || code == 46 || (48 <= code && code <= 57) || (65 <= code && code <= 70)) {
+            return true;
+        }
+        return false;
+    });
+    $(hexNode).keyup(function(event) {
+        var rgb = getRGB(event.target.value);
+        if(rgb) {
+            rgb.push("x");
+            updateColor.apply(null, rgb);
+        }
+    });
 
     tmp = $(trTag);
     for(i = 0; i < 15; i++) {
@@ -156,7 +176,7 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         wheelCtx.save();
         wheelCtx.lineWidth = width;
         wheelCtx.clearRect(0, 0, 196, 196);
-        wheelCtx.translate(radius+width, radius+width);
+        wheelCtx.translate(radius+width+0.5, radius+width+0.5);
         for(i = 0;i < 6;) {
             wheelCtx.strokeStyle = createGradient(wheelCtx, radius, 0, radius*0.5, radius*sin(-pi / 3), 
                     getHexColor(primaryColors, i), getHexColor(primaryColors, ++i));
@@ -177,6 +197,13 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
             wheelCtx.lineTo(bottomX, bottomY);
             wheelCtx.fill();            
         }
+        wheelCtx.lineWidth = 1;
+        wheelCtx.strokeStyle = "#000";
+        wheelCtx.beginPath();
+        wheelCtx.moveTo(inner, 0);
+        wheelCtx.lineTo(inner+width, 0);
+        wheelCtx.stroke();
+
         wheelCtx.restore();
     }
 
@@ -223,7 +250,7 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         }
     }
 
-    function updateColor(r, g, b) {
+    function updateColor(r, g, b, input) {
         newColor = currentColor, currentColor = [r, g, b];
         var currentHsv = solveRGB(r, g, b), 
             nextHsv = solveRGB.apply(null, newColor),
@@ -232,17 +259,20 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         setPalette(getHex(r, g, b));
         setWheel.apply(null, currentHsv);
         setCurrent.apply(null, currentColor.concat(newColor));
-        hexNode.value = getHex(r, g, b);
+        if(input != "x") {
+            hexNode.value = getHex(r, g, b);
+        }
         for(i in inputBoxes) {
             inputBoxes[i].val(boxValues[i]);
         }
     }
 
-    //updateColor.apply(null, solveHSV(360, 100, 100));
+    
     function s(i) {
         updateColor.apply(null, solveHSV(i%360, 100, 100));
         setTimeout(function() { s(i+1) }, 100);
     }
     //s(0);
     
+    updateColor(255, 0, 0);
 })(document, "0369CF");
