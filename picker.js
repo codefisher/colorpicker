@@ -118,6 +118,27 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
                     "min": 0,
                     "max": inputs[i][1],
                     "id": inputs[i][0][0]});
+            input.keydown(function(event) {
+                var code = event.keyCode;
+                if(code == 8 || code == 46 || (48 <= code && code <= 57)) {
+                    return true;
+                }
+                return false;
+            });
+            input.keyup(function(event) {
+                var target = event.target, val = target.value,
+                    index = "HSVRGB".indexOf(target.id);
+                if(index < 3) {
+                    tmp = solveRGB.apply(null, currentColor);
+                    tmp[index] = mod(val, inputs[index][1]);
+                    tmp = solveHSV.apply(null, tmp);
+                } else {
+                    tmp = currentColor;
+                    tmp[index%3] = mod(val, inputs[index][1]);
+                }
+                tmp.push(target.id);
+                updateColor.apply(null, tmp);
+            });
             label.append(input);
             inputBoxes.push(input);
             div.append(label);
@@ -314,7 +335,9 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
             hexNode.value = getHex(r, g, b);
         }
         for(i in inputBoxes) {
-            inputBoxes[i].val(boxValues[i]);
+            if(input != inputBoxes[i][0].id) {
+                inputBoxes[i].val(boxValues[i]);
+            }
         }
     }
 
@@ -324,6 +347,6 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         setTimeout(function() { s(i+1) }, 0);
     }
     //s(0);
-    updateColor.apply(null, solveHSV(0, 100, 40));
-    //updateColor(255, 0, 0);
+    //updateColor.apply(null, solveHSV(0, 100, 40));
+    updateColor(255, 0, 0);
 })(document, "0369CF");
