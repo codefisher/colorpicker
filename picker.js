@@ -2,11 +2,13 @@
 
     // once I am happy, hard code radius and width
     var wheel = $("#w"), wheelCtx = wheel[0].getContext("2d"),
-        currentCtx = $("#c")[0].getContext("2d"),
+        currentBox = $("#c"), currentCtx =currentBox[0].getContext("2d"),
         hexNode = $("#x")[0], inputBoxes = [],
         radius = 82, i = 0, width = 16, inner = radius-(width/2), color,
         wheelDown = false, tringaleDown = false,
         ma = Math, pi = ma.PI, round = ma.round, abs = ma.abs, max = ma.max, min = ma.min, floor = ma.floor, sin = ma.sin, cos = ma.cos, tan = ma.tan, sqrt = ma.sqrt, pow = ma.pow, atan = ma.atan2,
+
+        diffColor = [[0,-15], [15,-15], [15,0], [15,15], [0,15], [-15, 15], [-15, 0], [-15,-15]],
 
         currentColor = [255, 0, 0], newColor = currentColor,
         hex3match = /(.)(.)(.)/, hex3replace = "$1$1$2$2$3$3",
@@ -106,6 +108,20 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         return val.map(function(x) {return floor((x + v/HSVmax - C)*RGBmax);});
     }
 
+    function textBoxChange(event) {
+        var target = event.target, val = target.value,
+            index = "HSVRGB".indexOf(target.id);
+        if(index < 3) {
+            tmp = solveRGB.apply(null, currentColor);
+            tmp[index] = mod(val, inputs[index][1]);
+            tmp = solveHSV.apply(null, tmp);
+        } else {
+            tmp = currentColor;
+            tmp[index%3] = mod(val, inputs[index][1]);
+        }
+        return tmp;
+    }
+
     (function(){
         var div, label, radio, input;
         for(i in inputs) {
@@ -120,24 +136,24 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
                     "id": inputs[i][0][0]});
             input.keydown(function(event) {
                 var code = event.keyCode;
-                if(code == 8 || code == 46 || (48 <= code && code <= 57)) {
+                if(goodKey(code) || (48 <= code && code <= 57)) {
                     return true;
                 }
                 return false;
             });
+            input.change(function(event) {
+                updateColor.apply(null, textBoxChange(event));
+            });
             input.keyup(function(event) {
-                var target = event.target, val = target.value,
-                    index = "HSVRGB".indexOf(target.id);
-                if(index < 3) {
-                    tmp = solveRGB.apply(null, currentColor);
-                    tmp[index] = mod(val, inputs[index][1]);
-                    tmp = solveHSV.apply(null, tmp);
-                } else {
-                    tmp = currentColor;
-                    tmp[index%3] = mod(val, inputs[index][1]);
+                if(event.keyCode == 9)
+                    return false;
+                var target = event.target, val = target.value, rgb;
+                if(parseInt(val)) {
+                    rgb = textBoxChange(event);
+                    rgb.push(target.id);
+                    updateColor.apply(null, rgb);
                 }
-                tmp.push(target.id);
-                updateColor.apply(null, tmp);
+                return true;      
             });
             label.append(input);
             inputBoxes.push(input);
@@ -161,9 +177,13 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         }
         $("#p").append(tmp);
     }
+    function goodKey(code) {
+        return code == 8 || code == 46 || (37 <= code && code <= 40) || code == 13 || code == 9;
+    }
+
     $(hexNode).keydown(function(event) {
         var code = event.keyCode;
-        if(code == 8 || code == 46 || (48 <= code && code <= 57) || (65 <= code && code <= 70)) {
+        if(goodKey(code) || (48 <= code && code <= 57) || (65 <= code && code <= 70)) {
             return true;
         }
         return false;
@@ -188,10 +208,12 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         gradient.addColorStop(1, g2);
         return gradient;
     }
-    function angleDistance(event) {
-        var pos = wheel.position(),
-            x = event.pageX-pos.left-104,
-            y = event.pageY-pos.top-104,
+    function angleDistance(event, center) {
+        return angleDistanceHelper(event, center, wheel.position());
+    }
+    function angleDistanceHelper(event, center, pos) {
+        var x = event.pageX-pos.left-center,
+            y = event.pageY-pos.top-center,
             angle = mod(atan(-y, x)/pi*180, 360),
             distance = sqrt(x*x+y*y);
         return [angle, distance];
@@ -203,34 +225,59 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         setWheel.apply(null, tmp);
         setCurrent.apply(null, currentColor.concat(solveHSV.apply(null, tmp)));
     }
+    function setWheelTriangle(angle, distance) {
+        var rotate = solveRGB.apply(null, currentColor)[0];
+            x = distance * cos((angle-rotate)*pi/180),
+            y = distance * sin((angle-rotate)*pi/180),
+            sat_dist = inner-1-(inner*cos(pi*2/3)),
+            sat = (distance * cos((angle-rotate-120)*pi/180))-(inner*cos(pi*2/3)),
+            val_max = (sat_dist-sat)*tan(pi/6),
+            vlu = ((val_max*2)-(val_max+(distance * sin((angle-rotate-120)*pi/180))))/(val_max*2),
+            satu = (sat_dist-sat)/sat_dist;
+        return [rotate, minMax(round(100*vlu), 0, 100), minMax(round(100*satu), 0, 100), 0 <= vlu && vlu <= 1 && 0 <= satu && satu <= 1];
+    }
     wheel.mousedown(function (event) {
-        var items = angleDistance(event),
-            angle = items[0],
-            distance = items[1];
-        if(inner < distance && distance < inner+width){
+        var items = angleDistance(event, 104),
+            angle = items[0], distance = items[1];
+        if(inner+1 < distance && distance < inner+width){
             wheelDown = true;
             setWheelCurrent(angle);
-        }     
+        } else if(distance < inner) {
+            tmp = setWheelTriangle(angle, distance);     
+            if(tmp[3]) {
+                tringaleDown = true;
+                setWheel.apply(null, tmp);
+                setCurrent.apply(null, currentColor.concat(solveHSV.apply(null, tmp)));
+            }
+        }          
     });
     $(document).mousemove(function (event) {
-        var items = angleDistance(event),
+        var items = angleDistance(event, 104),
             angle = items[0],
             distance = items[1];
         if(wheelDown == true) {
             setWheelCurrent(angle);
+        } else if(tringaleDown == true) {
+            tmp = setWheelTriangle(angle, distance);
+            setCurrent.apply(null, currentColor.concat(solveHSV.apply(null, tmp)));
+            setWheel.apply(null, tmp);
         }
     });
     $(document).mouseup(function (event) {
-        var items = angleDistance(event),
+        var items = angleDistance(event, 104),
             angle = items[0],
-            distance = items[1];
-        if(wheelDown == true) {
+            distance = items[1]; 
+        if(wheelDown == true) {       
             wheelDown = false;
             tmp = solveRGB.apply(null, currentColor);
             tmp[0] = angle;
             updateColor.apply(null, solveHSV.apply(null, tmp));
+        } else if(tringaleDown == true) {
+            tringaleDown = false;
+            updateColor.apply(null, solveHSV.apply(null, setWheelTriangle(angle, distance)));
         }
     });
+
     function setWheel(h, s, v) {
         var topX = inner*cos(pi*2/3), topY = inner*sin(pi*2/3),
             bottomX = inner*cos(pi*4/3), bottomY = inner*sin(pi*4/3),
@@ -272,23 +319,33 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         wheelCtx.beginPath();
         var distance = size*v/100, across = -distance*tan(pi/6)*(s-50)/100*2;
         wheelCtx.arc(topX+(cos(pi/3)*(distance))-(cos(pi/6)*across),
-                     -topY+(sin(pi/3)*(distance))+(sin(pi/6)*across),5,0,pi *2 ,true);
+                     -topY+(sin(pi/3)*(distance))+(sin(pi/6)*across),4,0,pi *2 ,true);
         wheelCtx.closePath();
         wheelCtx.stroke();
 
         wheelCtx.restore();
     }
-
+    currentBox.mouseup(function(event) {
+        var items = angleDistanceHelper(event, 65, currentBox.position()),
+            angle = items[0],
+            distance = items[1], diff;
+        if(40 < distance && distance < 60) {
+            diff = diffColor[parseInt(((angle + 45/2)/45)%8)];
+            tmp = solveRGB.apply(null, currentColor);
+            tmp[1] = minMax(tmp[1] + diff[0], 0, 100);
+            tmp[2] = minMax(tmp[2] + diff[1], 0, 100);
+            updateColor.apply(null, solveHSV.apply(null, tmp));
+        }
+    });
     function setCurrent(r1, g1, b1, r2, g2, b2) {
-        var h = getHue(r1,g1,b1), s = getSaturation(r1, g1, b1), l = getLightness(r1, g1, b1),
-            f = 10, diff = [[0,-f], [f,-f], [f,0], [f,f], [0,f], [-f, f], [-f, 0], [-f,-f]];
+        var h = getHue(r1,g1,b1), s = getSaturation(r1, g1, b1), v = getValue(r1, g1, b1);
 
         currentCtx.save();
         currentCtx.clearRect(0, 0, 120, 120);
         currentCtx.translate(60, 60);
 
-        for(i in diff) {
-            currentCtx.fillStyle = "hsl("+h+","+(s+diff[i][0])+"%,"+(l+diff[i][1])+"%)";
+        for(i in diffColor) {
+            currentCtx.fillStyle = getHex.apply(null, solveHSV(h, minMax(s+diffColor[i][0], 0, 100), minMax(v+diffColor[i][1], 0, 100)));
             currentCtx.beginPath();
             currentCtx.arc(10, 0, 50, pi / 8, -pi / 8, 1);
             currentCtx.lineTo(10, 0);
@@ -343,8 +400,8 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
 
     
     function s(i) {
-        updateColor.apply(null, solveHSV(0, i%100, 50));
-        setTimeout(function() { s(i+1) }, 0);
+        setTimeout(function() { s(i+1) }, 10);
+        updateColor.apply(null, solveHSV(i%360, 100, 50));        
     }
     //s(0);
     //updateColor.apply(null, solveHSV(0, 100, 40));
