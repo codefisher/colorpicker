@@ -1,4 +1,4 @@
-(function(document, chars){
+(function(document, chars, sessionStorage){
 
     // once I am happy, hard code radius and width
     var wheel = $("#w"), wheelCtx = wheel[0].getContext("2d"),
@@ -13,7 +13,7 @@
         currentColor = [255, 0, 0], newColor = currentColor,
         hex3match = /(.)(.)(.)/, hex3replace = "$1$1$2$2$3$3",
         hexChars = "0123456789ABCDEF", inputBox = $("#i"), tmp, j,
-        inputTag = "<input />", tdTag = "<td/>", trTag = "<tr/>",
+        inputTag = "<input/>", tdTag = "<td/>", trTag = "<tr/>",
 
         RGBmax = 255, HSVmax = 100,
         inputs = [["Hue", 360], ["Saturation", HSVmax], ["Value", HSVmax],
@@ -126,7 +126,12 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
         var div, label, radio, input;
         for(i in inputs) {
             div = $("<div/>");
-            radio = $(inputTag, {"type": "radio", "name": "n", "checked": i == 0});
+            radio = $(inputTag, {
+                "type": "radio", 
+                "name": "n",
+                "checked": i == 0, 
+                click: function() { updateColor.apply(null, currentColor); }
+            });
             div.append(radio);
             label = $("<label/>", {text: inputs[i][0]});
             input = $(inputTag, {
@@ -195,13 +200,39 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
             updateColor.apply(null, rgb);
         }
     });
-
     tmp = $(trTag);
     for(i = 0; i < 15; i++) {
-        $(tdTag).appendTo(tmp);
+        $(tdTag, {click: function() { updateColor.apply(null, getRGB(this.value)); }}).appendTo(tmp);
     }
     $("#sc").append(tmp);
 
+    function loadSaved() {
+        var values = getSessionVals(), key, tds = $("#sc td");
+        for(i = 0; i < values.length; i++) {
+            if(i < 15) {
+                $(tds[i]).css("background", values[i][1]);
+                tds[i].value = values[i][1];
+            } else {
+                delete sessionStorage[values[i][1]];
+            }
+        }
+    }
+    function getSessionVals() {
+        var values = [];
+        for(i = 0; i < sessionStorage.length; i++) {
+            key = sessionStorage.key(i);
+            values.push([parseInt(sessionStorage[key]), key]);
+        }
+        values.sort(function(x, y) { return y[0] - x[0] });
+        return values;
+    }
+    $("#v").click(function(event) {
+        var hex = getHex.apply(null, currentColor);
+        delete sessionStorage[hex];
+        sessionStorage[hex] = sessionStorage.length ? getSessionVals()[0][0]+1 : 0;
+        loadSaved();
+    });
+    loadSaved();
     function createGradient(ctx, x1, y1, x2, y2, g1, g2) {
         var gradient = ctx.createLinearGradient(x1, y1, x2, y2);
         gradient.addColorStop(0, g1);
@@ -378,13 +409,12 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
             item.css("display", "none");
         }
     }
-
+    
     function updateColor(r, g, b, input) {
         currentColor = [r, g, b], newColor = currentColor;
         var currentHsv = solveRGB(r, g, b), 
             nextHsv = solveRGB.apply(null, newColor),
             boxValues = currentHsv.concat(currentColor);
-
         setPalette(getHex(r, g, b));
         setWheel.apply(null, currentHsv);
         setCurrent.apply(null, currentColor.concat(newColor));
@@ -406,4 +436,4 @@ primaryColors = decode("N5N50S0S5N0"), colorPaletteItem = {}, paletteColors = de
     //s(0);
     //updateColor.apply(null, solveHSV(0, 100, 40));
     updateColor(255, 0, 0);
-})(document, "0369CF");
+})(document, "0369CF", sessionStorage);
