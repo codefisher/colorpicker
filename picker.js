@@ -1,14 +1,12 @@
-(function(document, chars, sessionStorage, parseInt, RGBmax, HSVmax, hueMax, 
-    TRUE, FALSE, canvasSize, getContext, len){
-
-    // once I am happy, hard code radius and width
     var wheel = $("#w"), wheelCtx = getContext(wheel),
         currentBox = $("#c"), currentCtx = getContext(currentBox),
         barCanvas = $("#k"), barCanvasCtx = getContext(barCanvas),
         panelCanvas = $("#j"), panelCanvasCtx = getContext(panelCanvas),
         hexNode = $("#x")[0], inputBoxes = [],
         radius = 82, i = 0, width = 16, inner = radius-(width/2), color,
-        wheelDown = FALSE, tringaleDown = FALSE, barDown = FALSE, panelDown = FALSE,
+        wheelDown = false, tringaleDown = false, barDown = false, panelDown = false,
+        RGBmax = 255, HSVmax = 100, hueMax = 360,
+        canvasSize = 196,
         ma = Math, pi = ma.PI, round = ma.round, abs = ma.abs, max = ma.max, min = ma.min, floor = ma.floor, sin = ma.sin, cos = ma.cos, tan = ma.tan, sqrt = ma.sqrt, pow = ma.pow, atan = ma.atan2,
         black = "#000", white = "#fff", td,
         diffColor = [[0,-15], [15,-15], [15,0], [15,15], [0,15], [-15, 15], [-15, 0], [-15,-15]],
@@ -18,14 +16,19 @@
         hexChars = "0123456789ABCDEF", inputBox = $("#i"), tmp, j,
         inputTag = "<input/>", tdTag = "<td/>", trTag = "<tr/>",
         startView = 0,
+        chars = "0369CF",
         inputs = [["Hue", hueMax], ["Saturation", HSVmax], ["Value", HSVmax],
                   ["Red", RGBmax], ["Green", RGBmax], ["Blue", RGBmax]],
         radioIds = "YJKOQF",
         
-primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@;KK5<KG7BA0QM@QS3CE;H=98KMCI31H?4HLGOD26D:>B5SO@?PG4C?9DE;DQF6B;0DG9PS?C>:C=FBDG>O;1BF4I>;NK5D65LH4LH81HAAJL4=?@6>@6IA1H81CSFH>AJDABCG6NA3JM=6EAHQ5==;7N3EN:9NA;IL5<C1<PA6O@0JF3NSMN7GJJ;CP58IG2CM8<SMJJ5CD@7O2>QGFOG5KQ4CJ9=P?7N28B?:NL:HR5EQ:<P;6<@3IM3CSGIC5<KG>K=7IA@NF3JQ3<>:LO87H12IF4NF@HK9>P4@R46641<E4JS@CJ:6C80RB0");
+        primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@;KK5<KG7BA0QM@QS3CE;H=98KMCI31H?4HLGOD26D:>B5SO@?PG4C?9DE;DQF6B;0DG9PS?C>:C=FBDG>O;1BF4I>;NK5D65LH4LH81HAAJL4=?@6>@6IA1H81CSFH>AJDABCG6NA3JM=6EAHQ5==;7N3EN:9NA;IL5<C1<PA6O@0JF3NSMN7GJJ;CP58IG2CM8<SMJJ5CD@7O2>QGFOG5KQ4CJ9=P?7N28B?:NL:HR5EQ:<P;6<@3IM3CSGIC5<KG>K=7IA@NF3JQ3<>:LO87H12IF4NF@HK9>P4@R46641<E4JS@CJ:6C80RB0");
     
     for(i = 0; i < 7; i++) {
         primaryColorsArray.push(getHexColor(decode("N5N50S0S5N0"), i));
+    }
+
+    function getContext(item) {
+        return item[0].getContext("2d");
     }
 
     function getHexColor(value, index) {
@@ -40,8 +43,8 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
                 hex.push(chars[i]+chars[j++]);
             }
         }
-        for(i = 0; i < len(text);) {
-            result += hex[(text.charCodeAt(i++)-48)];
+        for(i = 0; i < text.length; i++) {
+            result += hex[(text.charCodeAt(i)-48)];
         }
         return result;
     }
@@ -53,20 +56,14 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
         return "#" + toHex(r)+toHex(g)+toHex(b);
     }
 
-    /*function hex2dec(hex) {
-        tmp = hex.charCodeAt(0);
-        return tmp < 58 ? tmp-48 : tmp < 71 ? tmp-55 : tmp-87;
-    }*/
     function getRGB(hex) {
         function hex2dec(hex) {
            return hexChars.indexOf(hex.toUpperCase());
         }
         hex = hex.replace("#", "");
-        //if(len(hex) == 3) {
-        //    hex = hex.replace(hex3match, hex3replace);
-        //}
-        hex = (len(hex) == 3) ? hex.replace(hex3match, hex3replace) : hex;
-        if(len(hex) == 6) {
+
+        hex = (hex.length == 3) ? hex.replace(hex3match, hex3replace) : hex;
+        if(hex.length == 6) {
             var result = [];
             for(i = 0; i < 3;) {
                 result.push(hex2dec(hex[i*2]) * 16 + hex2dec(hex[i++*2+1]));
@@ -165,14 +162,14 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
         input.click(func);
         input.keyup(function(event) {
             if(event.keyCode == 9)
-                return FALSE;
+                return false;
             var target = this, val = target.value, rgb;
             if(parseInt(val)) {
                 rgb = textBoxChange(target);
                 rgb.push(target.id);
                 doApply(updateColor, rgb);
             }
-            return TRUE;      
+            return true;      
         });
         label.append(input);
         inputBoxes.push(input);
@@ -222,7 +219,7 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
 
     function loadSaved() {
         var values = getSessionVals(), key, tds = $("#sc td"), value;
-        for(i = 0; i < len(values); i++) {
+        for(i = 0; i < values.length; i++) {
             value = values[i][1];
             if(i < 17) {
                 $(tds[i]).css(bkground, value);
@@ -234,7 +231,7 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
     }
     function getSessionVals() {
         var values = [];
-        for(i = 0; i < len(sessionStorage); i++) {
+        for(i = 0; i < sessionStorage.length; i++) {
             key = sessionStorage.key(i);
             values.push([parseInt(sessionStorage[key]), key]);
         }
@@ -244,14 +241,14 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
     $("#v").click(function(event) {
         var hex = doApply(getHex, currentColor);
         delete sessionStorage[hex];
-        sessionStorage[hex] = len(sessionStorage) ? getSessionVals()[0][0]+1 : 0;
+        sessionStorage[hex] = sessionStorage.length ? getSessionVals()[0][0]+1 : 0;
         loadSaved();
     });
     loadSaved();
     function createGradient(ctx, x1, y1, x2, y2, grad) {
         var gradient = ctx.createLinearGradient(x1, y1, x2, y2);
         for(j in grad) {
-            gradient.addColorStop(j/(len(grad)-1), grad[j]);
+            gradient.addColorStop(j/(grad.length-1), grad[j]);
         }
         return gradient;
     }
@@ -267,7 +264,7 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
     }
     function setWheelCurrent(angle) {
         var tmp;
-        wheelDown = TRUE;
+        wheelDown = true;
         tmp = doApply(solveRGB, currentColor);
         tmp[0] = angle;
         doApply(setWheel, tmp);
@@ -288,12 +285,12 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
         var items = angleDistance(event, 104, wheel), tmp,
             angle = items[0], distance = items[1];
         if(inner+1 < distance && distance < inner+width){
-            wheelDown = TRUE;
+            wheelDown = true;
             setWheelCurrent(angle);
         } else if(distance < inner) {
             tmp = setWheelTriangle(angle, distance);     
             if(tmp[3]) {
-                tringaleDown = TRUE;
+                tringaleDown = true;
                 doApply(setWheel, tmp);
                 doSetCurrent(doApply(solveHSV, tmp));
             }
@@ -324,19 +321,19 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
             angle = items[0], tmp,
             distance = items[1]; 
         if(wheelDown) {       
-            wheelDown = FALSE;
+            wheelDown = false;
             tmp = doApply(solveRGB, currentColor);
             tmp[0] = angle;
             doApply(updateColor, doApply(solveHSV, tmp));
         } else if(tringaleDown) {
-            tringaleDown = FALSE;
+            tringaleDown = false;
             doApply(updateColor, doApply(solveHSV, setWheelTriangle(angle, distance)));
         } else if(barDown) {
             doApply(updateColor, getBarColor(event));
-            barDown = FALSE;
+            barDown = false;
         } else if(panelDown) {
             doApply(updateColor, getPanelColor(event));
-            panelDown = FALSE;
+            panelDown = false;
         } 
     });
 
@@ -382,17 +379,15 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
         wheelCtx.beginPath();
         var distance = size*v/HSVmax, across = -distance*tan(pi/6)*(s-50)/HSVmax*2;
         wheelCtx.arc(topX+(cos(pi/3)*(distance))-(cos(pi/6)*across),
-                     -topY+(sin(pi/3)*(distance))+(sin(pi/6)*across),4,0,pi *2 ,TRUE);
-        //wheelCtx.closePath();
+                     -topY+(sin(pi/3)*(distance))+(sin(pi/6)*across),4,0,pi *2 ,true);
         wheelCtx.stroke();
-
         wheelCtx.restore();
     }
     
     currentBox.mouseup(function(event) {
         var items = angleDistance(event, 65, currentBox),
             angle = items[0], tmp,
-            distance = items[1], diff; //alert(distance);
+            distance = items[1], diff; 
         if(40 < distance && distance < 60) {
             diff = diffColor[parseInt(((angle + 45/2)/45)%8)];
             tmp = doApply(solveRGB, currentColor);
@@ -410,7 +405,6 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
         var h = getHue(r1,g1,b1), s = getSaturation(r1, g1, b1), v = getValue(r1, g1, b1),
             size = 40;
 
-        //currentCtx.save();
         currentCtx.clearRect(-60, -60, 120, 120);        
 
         for(i in diffColor) { 
@@ -430,7 +424,6 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
             currentCtx.closePath();
             currentCtx.fill();
         }
-        //currentCtx.restore();
     }
 
     function setPalette(hex) {
@@ -452,19 +445,12 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
             if($("#"+radioIds[i])[0].checked)
                 return i;
         }
-        /*
-        return $("#rH")[0].checked ? 0 :
-              ($("#rS")[0].checked ? 1 :
-              ($("#rV")[0].checked ? 2 :
-              ($("#rR")[0].checked ? 3 : 
-              ($("#rG")[0].checked ? 4 : 5))));*/
     }
     function drawPanel(r, g, b) {
         var grad0, grad2, gard4,
             x, y, z, view = getPanelView(), facz, facy, facx, vc,
             hsv = solveRGB(r, g, b), h = hsv[0], s = hsv[1], v = hsv[2];
-        //barCanvasCtx.clearRect(0, 0, 16, canvasSize);
-        //panelCanvasCtx.clearRect(0, 0, canvasSize, canvasSize);
+
         if(view == 0) {
             x = v; y = s; z = hueMax-h; facz = hueMax; facy = HSVmax; facx = HSVmax;
             grad0 = primaryColorsArray;
@@ -566,14 +552,14 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
         var tmp = getBarColor(event);
         doSetCurrent(tmp);
         doApply(drawPanel, tmp);
-        barDown = TRUE;
+        barDown = true;
     });
 
     panelCanvas.mousedown(function(event) {
         var tmp = getPanelColor(event);
         doSetCurrent(tmp);
         doApply(drawPanel, tmp);
-        panelDown = TRUE;
+        panelDown = true;
     });
 
     function updateColor(r, g, b, input) {
@@ -594,13 +580,5 @@ primaryColorsArray = [], colorPaletteItem = {}, paletteColors = decode("B;MQS:B@
         }
         doApply(drawPanel, currentColor);
     }    
-    //function s(i) {
-    //    setTimeout(function() { s(i+1) }, 10);
-    //    updateColor.apply(null, solveHSV(i%360, 100, 50));        
-    //}
-    //s(0);
-    //updateColor.apply(null, solveHSV(0, 100, 40));
     doApply(updateColor, currentColor);
-})(document, "0369CF", sessionStorage, parseInt, 255, 100, 360, true, false, 196,
-     function(item) { return item[0].getContext("2d"); }, 
-     function(item) { return item.length; });
+
