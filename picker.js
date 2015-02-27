@@ -7,7 +7,6 @@ var wheel = $("#w"), wheelCtx = getContext(wheel),
     wheelDown = false, tringaleDown = false, barDown = false, panelDown = false,
     RGBmax = 255, HSVmax = 100, hueMax = 360,
     canvasSize = 196,
-    ma = Math, pi = ma.PI, round = ma.round, abs = ma.abs, max = ma.max, min = ma.min, floor = ma.floor, sin = ma.sin, cos = ma.cos, tan = ma.tan, sqrt = ma.sqrt, pow = ma.pow, atan = ma.atan2,
     black = "#000", white = "#fff", td,
     diffColor = [[0,-15], [15,-15], [15,0], [15,15], [0,15], [-15, 15], [-15, 0], [-15,-15]],
     bkground = "background",
@@ -83,23 +82,23 @@ function mod(x, n) {
 
 
 function getHue(r,g,b) {
-    var M = max(r, g, b),
-        C = M - min(r, g, b);   
-    return round(60 * ((C == 0) ? 0 : ((M == r) ? mod((g-b)/C, 6) : ((M == g) ? 2 + (b-r)/C : 4 + (r-g)/C))));
+    var M = Math.max(r, g, b),
+        C = M - Math.min(r, g, b);   
+    return Math.round(60 * ((C == 0) ? 0 : ((M == r) ? mod((g-b)/C, 6) : ((M == g) ? 2 + (b-r)/C : 4 + (r-g)/C))));
 }
 
 function getValue(r, g, b) {
-    return round(HSVmax * max(r, g, b) / RGBmax);
+    return Math.round(HSVmax * Math.max(r, g, b) / RGBmax);
 }
 
 function getLightness(r, g, b) {
-    return (HSVmax * 0.5 * (max(r, g, b) + min(r, g, b)) / RGBmax) ;
+    return (HSVmax * 0.5 * (Math.max(r, g, b) + Math.min(r, g, b)) / RGBmax) ;
 }
 
 function getSaturation(r, g, b) {
-    var M = max(r, g, b),
-        C = M - min(r, g, b);
-    return round(HSVmax * (C ? C / M : 0));
+    var M = Math.max(r, g, b),
+        C = M - Math.min(r, g, b);
+    return Math.round(HSVmax * (C ? C / M : 0));
 }
 
 function solveRGB(r, g, b) {
@@ -113,9 +112,9 @@ function doApply(func, args) {
 function solveHSV(h, s, v) {
     var C = v/HSVmax * s/HSVmax,
         H = mod(h/60, 6),
-        X = C * (1 - abs(mod(H, 2) - 1)),
-        val = [[C,X,0],[X,C,0],[0,C,X],[0,X,C],[X,0,C],[C,0,X]][floor(H)];
-    return val.map(function(x) {return floor((x + v/HSVmax - C)*RGBmax);});
+        X = C * (1 - Math.abs(mod(H, 2) - 1)),
+        val = [[C,X,0],[X,C,0],[0,C,X],[0,X,C],[X,0,C],[C,0,X]][Math.floor(H)];
+    return val.map(function(x) {return Math.floor((x + v/HSVmax - C)*RGBmax);});
 }
 
 function textBoxChange(target) {
@@ -258,8 +257,8 @@ function getXY(event, elem, offset) {
 }
 function angleDistance(event, center, elm) {
     var xy = getXY(event, elm, center), x = xy[0], y = xy[1];
-        angle = mod(atan(-y, x)/pi*180, hueMax),
-        distance = sqrt(x*x+y*y);
+        angle = mod(Math.atan2(-y, x)/Math.PI*180, hueMax),
+        distance = Math.sqrt(x*x+y*y);
     return [angle, distance];
 }
 function setWheelCurrent(angle) {
@@ -272,14 +271,14 @@ function setWheelCurrent(angle) {
 }
 function setWheelTriangle(angle, distance) {
     var rotate = doApply(solveRGB, currentColor)[0],
-        x = distance * cos((angle-rotate)*pi/180),
-        y = distance * sin((angle-rotate)*pi/180),
-        sat_dist = inner-1-(inner*cos(pi*2/3)),
-        sat = (distance * cos((angle-rotate-120)*pi/180))-(inner*cos(pi*2/3)),
-        val_max = (sat_dist-sat)*tan(pi/6),
-        vlu = ((val_max*2)-(val_max+(distance * sin((angle-rotate-120)*pi/180))))/(val_max*2),
+        x = distance * Math.cos((angle-rotate)*Math.PI/180),
+        y = distance * Math.sin((angle-rotate)*Math.PI/180),
+        sat_dist = inner-1-(inner*Math.cos(Math.PI*2/3)),
+        sat = (distance * Math.cos((angle-rotate-120)*Math.PI/180))-(inner*Math.cos(Math.PI*2/3)),
+        val_max = (sat_dist-sat)*Math.tan(Math.PI/6),
+        vlu = ((val_max*2)-(val_max+(distance * Math.sin((angle-rotate-120)*Math.PI/180))))/(val_max*2),
         satu = (sat_dist-sat)/sat_dist;
-    return [rotate, minMax(round(HSVmax*vlu), 0, HSVmax), minMax(round(HSVmax*satu), 0, HSVmax), 0 <= vlu && vlu <= 1 && 0 <= satu && satu <= 1];
+    return [rotate, minMax(Math.round(HSVmax*vlu), 0, HSVmax), minMax(Math.round(HSVmax*satu), 0, HSVmax), 0 <= vlu && vlu <= 1 && 0 <= satu && satu <= 1];
 }
 wheel.mousedown(function (event) {
     var items = angleDistance(event, 104, wheel), tmp,
@@ -338,25 +337,25 @@ $(document).mouseup(function (event) {
 });
 
 function setWheel(h, s, v) {
-    var topX = inner*cos(pi*2/3), topY = inner*sin(pi*2/3),
-        bottomX = inner*cos(pi*4/3), bottomY = inner*sin(pi*4/3),
+    var topX = inner*Math.cos(Math.PI*2/3), topY = inner*Math.sin(Math.PI*2/3),
+        bottomX = inner*Math.cos(Math.PI*4/3), bottomY = inner*Math.sin(Math.PI*4/3),
         horizontal = inner-topX,
-        vertical = topY-bottomY, size = inner-bottomX, tsize = sqrt(size*size+topY*topY);
+        vertical = topY-bottomY, size = inner-bottomX, tsize = Math.sqrt(size*size+topY*topY);
 
     wheelCtx.save();
     wheelCtx.lineWidth = width;
     wheelCtx.clearRect(0, 0, canvasSize, canvasSize);
     wheelCtx.translate(radius+width, radius+width);
     for(i = 0;i < 6; i++) {
-        wheelCtx.strokeStyle = createGradient(wheelCtx, radius, 0, radius*0.5, radius*sin(-pi / 3), 
+        wheelCtx.strokeStyle = createGradient(wheelCtx, radius, 0, radius*0.5, radius*Math.sin(-Math.PI / 3), 
                 [primaryColorsArray[i], primaryColorsArray[i+1]]);
 
         wheelCtx.beginPath();
-        wheelCtx.arc(0, 0, radius, 0.01, -pi / 3, 1);
+        wheelCtx.arc(0, 0, radius, 0.01, -Math.PI / 3, 1);
         wheelCtx.stroke();
-        wheelCtx.rotate(-pi / 3);
+        wheelCtx.rotate(-Math.PI / 3);
     }
-    wheelCtx.rotate(-pi * h / 180);
+    wheelCtx.rotate(-Math.PI * h / 180);
     for(i = 0; i < 2; i++) {
         wheelCtx.fillStyle = ( !i ? createGradient(wheelCtx, 0, topY, 0, bottomY, [white, black]) 
                 : createGradient(wheelCtx, topX, 0, inner, 0, ["hsla("+h+",100%,50%,0)", "hsl("+h+",100%,50%)"]));
@@ -377,9 +376,9 @@ function setWheel(h, s, v) {
     wheelCtx.strokeStyle = doApply(getLightness, solveHSV(h, s, v)) > 25 ? black : white;
     wheelCtx.lineWidth = 2;
     wheelCtx.beginPath();
-    var distance = size*v/HSVmax, across = -distance*tan(pi/6)*(s-50)/HSVmax*2;
-    wheelCtx.arc(topX+(cos(pi/3)*(distance))-(cos(pi/6)*across),
-                 -topY+(sin(pi/3)*(distance))+(sin(pi/6)*across),4,0,pi *2 ,true);
+    var distance = size*v/HSVmax, across = -distance*Math.tan(Math.PI/6)*(s-50)/HSVmax*2;
+    wheelCtx.arc(topX+(Math.cos(Math.PI/3)*(distance))-(Math.cos(Math.PI/6)*across),
+                 -topY+(Math.sin(Math.PI/3)*(distance))+(Math.sin(Math.PI/6)*across),4,0,Math.PI *2 ,true);
     wheelCtx.stroke();
     wheelCtx.restore();
 }
@@ -410,17 +409,17 @@ function setCurrent(r1, g1, b1, r2, g2, b2) {
     for(i in diffColor) { 
         currentCtx.fillStyle = doApply(getHex, solveHSV(h, minMax(s+diffColor[i][0], 0, HSVmax), minMax(v+diffColor[i][1], 0, HSVmax)));
         currentCtx.beginPath();
-        currentCtx.arc(10, 0, size+10, pi / 8, -pi / 8, 1);
+        currentCtx.arc(10, 0, size+10, Math.PI / 8, -Math.PI / 8, 1);
         currentCtx.lineTo(10, 0);
         currentCtx.closePath();
         currentCtx.fill();
-        currentCtx.rotate(-pi / 4, 60, 60);
+        currentCtx.rotate(-Math.PI / 4, 60, 60);
     }
 
     for(i = 0; i < 2; i++) {
         currentCtx.fillStyle = i ? getHex(r1, g1, b1) : getHex(r2, g2, b2);
         currentCtx.beginPath();
-        currentCtx.arc(0, 0, size, (i ? -1 : 1) * pi / 2, (i ? 1 : -1) * pi / 2, 1);
+        currentCtx.arc(0, 0, size, (i ? -1 : 1) * Math.PI / 2, (i ? 1 : -1) * Math.PI / 2, 1);
         currentCtx.closePath();
         currentCtx.fill();
     }
