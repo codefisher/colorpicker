@@ -229,8 +229,12 @@ function goodKey(code) {
 
 $(hexNode).keydown(function(event) {
     var code = event.keyCode;
+    if(event.ctrlKey) {
+        return true;
+    }
     return goodKey(code) || (48 <= code && code <= 57) || (65 <= code && code <= 70);
 });
+
 $(hexNode).keyup(function(event) {
     var rgb = getRGB(this.value);
     if(rgb) {
@@ -429,7 +433,9 @@ currentBox.mouseup(function(event) {
 function doSetCurrent(c2) {
     doApply(setCurrent, currentColor.concat(c2));
 }
+
 currentCtx.translate(60, 60);
+
 function setCurrent(r1, g1, b1, r2, g2, b2) {
     var h = getHue(r1,g1,b1), s = getSaturation(r1, g1, b1), v = getValue(r1, g1, b1),
         size = 40;
@@ -603,7 +609,7 @@ function updateColor(r, g, b, input) {
         hexNode.value = getHex(r, g, b);
     }
     for(i in inputBoxes) {
-        if(input != inputBoxes[i][0].id) {
+        if(input != inputBoxes[i][0].id && inputBoxes !== document.activeElement) {
             inputBoxes[i].val(boxValues[i]);
         }
     }
