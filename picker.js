@@ -186,6 +186,10 @@ function startup() {
             return true;
         });
         inputBoxes.push(input);
+        var radio = document.getElementById(radioIds[i]);
+        radio.addEventListener('click', function() { 
+            doApply(updateColor, currentColor); 
+        });
     }
 
     for(i = 0; i < 6*36; i++) {
