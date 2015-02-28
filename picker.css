@@ -35,8 +35,7 @@ h2 {
 }
 
 #a div:not(#i) {
-    line-height:1.5em;
-    padding:7px 10px;
+    padding:6px 10px;
 }
 
 input[type='number'],

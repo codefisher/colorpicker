@@ -1,16 +1,15 @@
-var wheel = $("#w"),
+var wheel = document.getElementById("w"),
     wheelCtx = getContext(wheel),
-    currentBox = $("#c"),
+    currentBox = document.getElementById("c"),
     currentCtx = getContext(currentBox),
-    barCanvas = $("#k"),
+    barCanvas = document.getElementById("k"),
     barCanvasCtx = getContext(barCanvas),
-    panelCanvas = $("#j"),
+    panelCanvas = document.getElementById("j"),
     panelCanvasCtx = getContext(panelCanvas),
 
-    hexNode = $("#x")[0],
+    hexNode = document.getElementById("x"),
     inputBoxes = [],
     radius = 82,
-    i = 0,
     width = 16,
     inner = radius-(width/2),
     color,
@@ -36,7 +35,6 @@ var wheel = $("#w"),
     hex3match = /(.)(.)(.)/,
     hex3replace = "$1$1$2$2$3$3",
     hexChars = "0123456789ABCDEF",
-    inputBox = $("#i"),
     tmp,
     j,
     inputTag = "<input/>",
@@ -46,18 +44,19 @@ var wheel = $("#w"),
     chars = "0369CF",
     inputs = [["Hue", hueMax], ["Saturation", HSVmax], ["Value", HSVmax],
               ["Red", RGBmax], ["Green", RGBmax], ["Blue", RGBmax]],
+    inputIds = "HSVRGB",
     radioIds = "YJKOQF",
     
     primaryColorsArray = [],
     colorPaletteItem = {},
     paletteColors = decode("B;MQS:B@;KK5<KG7BA0QM@QS3CE;H=98KMCI31H?4HLGOD26D:>B5SO@?PG4C?9DE;DQF6B;0DG9PS?C>:C=FBDG>O;1BF4I>;NK5D65LH4LH81HAAJL4=?@6>@6IA1H81CSFH>AJDABCG6NA3JM=6EAHQ5==;7N3EN:9NA;IL5<C1<PA6O@0JF3NSMN7GJJ;CP58IG2CM8<SMJJ5CD@7O2>QGFOG5KQ4CJ9=P?7N28B?:NL:HR5EQ:<P;6<@3IM3CSGIC5<KG>K=7IA@NF3JQ3<>:LO87H12IF4NF@HK9>P4@R46641<E4JS@CJ:6C80RB0");
 
-for(i = 0; i < 7; i++) {
+for(var i = 0; i < 7; i++) {
     primaryColorsArray.push(getHexColor(decode("N5N50S0S5N0"), i));
 }
 
 function getContext(item) {
-    return item[0].getContext("2d");
+    return item.getContext("2d");
 }
 
 function getHexColor(value, index) {
@@ -78,7 +77,7 @@ function decode(text) {
     return result;
 }
 
-function getHex(r,g,b) {
+function getHex(r, g, b) {
     function toHex(d) {
         return ("0" + ((d < 16) ? "" : toHex((d-d % 16)/16)) + hexChars.charAt(d % 16)).slice(-2);
     }
@@ -161,94 +160,177 @@ function textBoxChange(target) {
     return tmp;
 }
 
-var tmp = document.createElement("input");
-tmp.setAttribute("type", "color");
+function startup() {
+    var tmp = document.createElement("input");
+    tmp.setAttribute("type", "color");
 
-var div, label, radio, input,
-    func = function(event) { doApply(updateColor, textBoxChange(this)); };
-for(i in inputs) {
-    div = $("<div/>");
-    radio = $(inputTag, {
-        "type": "radio", 
-        "name": "n",
-        "id": radioIds[i],
-        "checked": i == startView, 
-        click: function() { doApply(updateColor, currentColor); }
-    });
-    div.append(radio);
-    label = $("<label/>", {text: inputs[i][0]});
-    input = $(inputTag, {
-            "type": (tmp.type !== "text") ? "number" : "text",
-            "min": 0,
-            "size":3,
-            "max": inputs[i][1],
-            "id": inputs[i][0][0]});
-    input.keydown(function(event) {
+    var div, label, radio, input,
+        func = function(event) { doApply(updateColor, textBoxChange(this)); };
+    for(i in inputs) {
+        var input = document.getElementById(inputIds[i]);
+        input.addEventListener('keydown', function(event) {
+            var code = event.keyCode;
+            return goodKey(code) || (48 <= code && code <= 57);
+        });
+        input.addEventListener('change', func);
+        input.addEventListener('click', func);
+        input.addEventListener('keyup', function(event) {
+            if(event.keyCode == 9)
+                return false;
+            var target = this, val = target.value, rgb;
+            if(parseInt(val)) {
+                rgb = textBoxChange(target);
+                rgb.push(target.id);
+                doApply(updateColor, rgb);
+            }
+            return true;
+        });
+        inputBoxes.push(input);
+    }
+
+    for(i = 0; i < 6*36; i++) {
+        if(i % 36 == 0) {
+            tmp = $(trTag);
+            $("#p").append(tmp);
+        }
+        color = getHexColor(paletteColors, i);
+        td = $(tdTag, {
+            click: function (event) {
+                doApply(updateColor, getRGB(this.value));
+            }
+        });
+        td[0].value = color;
+        td.css(bkground, color);
+        colorPaletteItem[color] = td;
+        td.appendTo(tmp); 
+    }
+
+    hexNode.addEventListener('keydown', function(event) {
         var code = event.keyCode;
-        return goodKey(code) || (48 <= code && code <= 57);
+        if(event.ctrlKey) {
+            return true;
+        }
+        return goodKey(code) || (48 <= code && code <= 57) || (65 <= code && code <= 70);
     });
-    input.change(func);
-    input.click(func);
-    input.keyup(function(event) {
-        if(event.keyCode == 9)
-            return false;
-        var target = this, val = target.value, rgb;
-        if(parseInt(val)) {
-            rgb = textBoxChange(target);
-            rgb.push(target.id);
+
+    hexNode.addEventListener('keyup', function(event) {
+        var rgb = getRGB(this.value);
+        if(rgb) {
+            rgb.push("x");
             doApply(updateColor, rgb);
         }
-        return true;      
     });
-    label.append(input);
-    inputBoxes.push(input);
-    div.append(label);
-    inputBox.append(div);
-}    
-
-for(i = 0; i < 6*36; i++) {
-    if(i % 36 == 0) {
-        tmp = $(trTag);
-        $("#p").append(tmp);
+    tmp = $(trTag);
+    for(i = 0; i < 17; i++) {
+        $(tdTag, {click: function(event) {
+            if(this.value) doApply(updateColor, getRGB(this.value)); 
+        }}).appendTo(tmp);
     }
-    color = getHexColor(paletteColors, i);
-    td = $(tdTag, {
-        click: function (event) {
-            doApply(updateColor, getRGB(this.value));
+    $("#sc").append(tmp);
+
+    $("#v").click(function(event) {
+        var hex = doApply(getHex, currentColor);
+        delete sessionStorage[hex];
+        sessionStorage[hex] = sessionStorage.length ? getSessionVals()[0][0]+1 : 0;
+        loadSaved();
+    });
+    loadSaved();
+
+    wheel.addEventListener('mousedown', function (event) {
+        var items = angleDistance(event, 104, wheel), tmp,
+            angle = items[0], distance = items[1];
+        if(inner+1 < distance && distance < inner+width){
+            wheelDown = true;
+            setWheelCurrent(angle);
+        } else if(distance < inner) {
+            tmp = setWheelTriangle(angle, distance);     
+            if(tmp[3]) {
+                tringaleDown = true;
+                doApply(setWheel, tmp);
+                doSetCurrent(doApply(solveHSV, tmp));
+            }
         }
     });
-    td[0].value = color;       
-    td.css(bkground, color);
-    colorPaletteItem[color] = td;
-    td.appendTo(tmp); 
+
+    document.addEventListener('mousemove', function (event) {
+        var items = angleDistance(event, 104, wheel),
+            angle = items[0], tmp,
+            distance = items[1];
+        if(wheelDown) {
+            setWheelCurrent(angle);
+        } else if(tringaleDown) {
+            tmp = setWheelTriangle(angle, distance);
+            doSetCurrent(doApply(solveHSV, tmp));
+            doApply(setWheel, tmp);
+        } else if(barDown) {
+            var tmp = getBarColor(event);
+            doSetCurrent(tmp);
+            doApply(drawPanel, tmp);
+        } else if(panelDown) {
+            var tmp = getPanelColor(event);
+            doSetCurrent(tmp);
+            doApply(drawPanel, tmp);
+        }
+    });
+
+    document.addEventListener('mouseup', function (event) {
+        var items = angleDistance(event, 104, wheel),
+            angle = items[0], tmp,
+            distance = items[1]; 
+        if(wheelDown) {       
+            wheelDown = false;
+            tmp = doApply(solveRGB, currentColor);
+            tmp[0] = angle;
+            doApply(updateColor, doApply(solveHSV, tmp));
+        } else if(tringaleDown) {
+            tringaleDown = false;
+            doApply(updateColor, doApply(solveHSV, setWheelTriangle(angle, distance)));
+        } else if(barDown) {
+            doApply(updateColor, getBarColor(event));
+            barDown = false;
+        } else if(panelDown) {
+            doApply(updateColor, getPanelColor(event));
+            panelDown = false;
+        } 
+    });
+
+    currentBox.addEventListener('mouseup', function(event) {
+        var items = angleDistance(event, 65, currentBox),
+            angle = items[0], tmp,
+            distance = items[1], diff; 
+        if(40 < distance && distance < 60) {
+            diff = diffColor[parseInt(((angle + 45/2)/45)%8)];
+            tmp = doApply(solveRGB, currentColor);
+            for(i=0; i < 2;) {
+                tmp[i+1] = minMax(diff[i]+tmp[++i], 0, HSVmax);
+            }
+            doApply(updateColor, doApply(solveHSV, tmp));
+        }
+    });
+
+    currentCtx.translate(60, 60);
+
+
+    barCanvas.addEventListener('mousedown', function(event) {
+        var tmp = getBarColor(event);
+        doSetCurrent(tmp);
+        doApply(drawPanel, tmp);
+        barDown = true;
+    });
+
+    panelCanvas.addEventListener('mousedown', function(event) {
+        var tmp = getPanelColor(event);
+        doSetCurrent(tmp);
+        doApply(drawPanel, tmp);
+        panelDown = true;
+    });
+
+    doApply(updateColor, currentColor);
 }
 
 function goodKey(code) {
     return code == 8 || code == 46 || (37 <= code && code <= 40) || code == 13 || code == 9;
 }
-
-$(hexNode).keydown(function(event) {
-    var code = event.keyCode;
-    if(event.ctrlKey) {
-        return true;
-    }
-    return goodKey(code) || (48 <= code && code <= 57) || (65 <= code && code <= 70);
-});
-
-$(hexNode).keyup(function(event) {
-    var rgb = getRGB(this.value);
-    if(rgb) {
-        rgb.push("x");
-        doApply(updateColor, rgb);
-    }
-});
-tmp = $(trTag);
-for(i = 0; i < 17; i++) {
-    $(tdTag, {click: function(event) {
-        if(this.value) doApply(updateColor, getRGB(this.value)); 
-    }}).appendTo(tmp);
-}
-$("#sc").append(tmp);
 
 function loadSaved() {
     var values = getSessionVals(), key, tds = $("#sc td"), value;
@@ -262,6 +344,7 @@ function loadSaved() {
         }
     }
 }
+
 function getSessionVals() {
     var values = [];
     for(i = 0; i < sessionStorage.length; i++) {
@@ -271,13 +354,7 @@ function getSessionVals() {
     values.sort(function(x, y) { return y[0] - x[0] });
     return values;
 }
-$("#v").click(function(event) {
-    var hex = doApply(getHex, currentColor);
-    delete sessionStorage[hex];
-    sessionStorage[hex] = sessionStorage.length ? getSessionVals()[0][0]+1 : 0;
-    loadSaved();
-});
-loadSaved();
+
 function createGradient(ctx, x1, y1, x2, y2, grad) {
     var gradient = ctx.createLinearGradient(x1, y1, x2, y2);
     for(j in grad) {
@@ -285,16 +362,19 @@ function createGradient(ctx, x1, y1, x2, y2, grad) {
     }
     return gradient;
 }
+
 function getXY(event, elem, offset) {
-    var el = elem[0];
+    var el = elem;
     return [event.pageX-el.offsetLeft-offset, event.pageY-el.offsetTop-offset];
 }
+
 function angleDistance(event, center, elm) {
     var xy = getXY(event, elm, center), x = xy[0], y = xy[1];
         angle = mod(Math.atan2(-y, x)/Math.PI*180, hueMax),
         distance = Math.sqrt(x*x+y*y);
     return [angle, distance];
 }
+
 function setWheelCurrent(angle) {
     var tmp;
     wheelDown = true;
@@ -303,6 +383,7 @@ function setWheelCurrent(angle) {
     doApply(setWheel, tmp);
     doSetCurrent(doApply(solveHSV, tmp));
 }
+
 function setWheelTriangle(angle, distance) {
     var rotate = doApply(solveRGB, currentColor)[0],
         x = distance * Math.cos((angle-rotate)*Math.PI/180),
@@ -314,61 +395,6 @@ function setWheelTriangle(angle, distance) {
         satu = (sat_dist-sat)/sat_dist;
     return [rotate, minMax(Math.round(HSVmax*vlu), 0, HSVmax), minMax(Math.round(HSVmax*satu), 0, HSVmax), 0 <= vlu && vlu <= 1 && 0 <= satu && satu <= 1];
 }
-wheel.mousedown(function (event) {
-    var items = angleDistance(event, 104, wheel), tmp,
-        angle = items[0], distance = items[1];
-    if(inner+1 < distance && distance < inner+width){
-        wheelDown = true;
-        setWheelCurrent(angle);
-    } else if(distance < inner) {
-        tmp = setWheelTriangle(angle, distance);     
-        if(tmp[3]) {
-            tringaleDown = true;
-            doApply(setWheel, tmp);
-            doSetCurrent(doApply(solveHSV, tmp));
-        }
-    }          
-});
-$(document).mousemove(function (event) {
-    var items = angleDistance(event, 104, wheel),
-        angle = items[0], tmp,
-        distance = items[1];
-    if(wheelDown) {
-        setWheelCurrent(angle);
-    } else if(tringaleDown) {
-        tmp = setWheelTriangle(angle, distance);
-        doSetCurrent(doApply(solveHSV, tmp));
-        doApply(setWheel, tmp);
-    } else if(barDown) {
-        var tmp = getBarColor(event);
-        doSetCurrent(tmp);
-        doApply(drawPanel, tmp);
-    } else if(panelDown) {
-        var tmp = getPanelColor(event);
-        doSetCurrent(tmp);
-        doApply(drawPanel, tmp);
-    }
-});
-$(document).mouseup(function (event) {
-    var items = angleDistance(event, 104, wheel),
-        angle = items[0], tmp,
-        distance = items[1]; 
-    if(wheelDown) {       
-        wheelDown = false;
-        tmp = doApply(solveRGB, currentColor);
-        tmp[0] = angle;
-        doApply(updateColor, doApply(solveHSV, tmp));
-    } else if(tringaleDown) {
-        tringaleDown = false;
-        doApply(updateColor, doApply(solveHSV, setWheelTriangle(angle, distance)));
-    } else if(barDown) {
-        doApply(updateColor, getBarColor(event));
-        barDown = false;
-    } else if(panelDown) {
-        doApply(updateColor, getPanelColor(event));
-        panelDown = false;
-    } 
-});
 
 function setWheel(h, s, v) {
     var topX = inner*Math.cos(Math.PI*2/3), topY = inner*Math.sin(Math.PI*2/3),
@@ -417,24 +443,10 @@ function setWheel(h, s, v) {
     wheelCtx.restore();
 }
 
-currentBox.mouseup(function(event) {
-    var items = angleDistance(event, 65, currentBox),
-        angle = items[0], tmp,
-        distance = items[1], diff; 
-    if(40 < distance && distance < 60) {
-        diff = diffColor[parseInt(((angle + 45/2)/45)%8)];
-        tmp = doApply(solveRGB, currentColor);
-        for(i=0; i < 2;) {
-            tmp[i+1] = minMax(diff[i]+tmp[++i], 0, HSVmax);
-        }
-        doApply(updateColor, doApply(solveHSV, tmp));
-    }
-});
 function doSetCurrent(c2) {
     doApply(setCurrent, currentColor.concat(c2));
 }
 
-currentCtx.translate(60, 60);
 
 function setCurrent(r1, g1, b1, r2, g2, b2) {
     var h = getHue(r1,g1,b1), s = getSaturation(r1, g1, b1), v = getValue(r1, g1, b1),
@@ -472,15 +484,15 @@ function setPalette(hex) {
         item.css("display", "none");
     }
 }
-for(i in radioIds) {
-    
-}
+
 function getPanelView() {
     for(i = 0; i < 6; i++) {
-        if($("#"+radioIds[i])[0].checked)
+        if(document.getElementById(radioIds[i]).checked) {
             return i;
+        }
     }
 }
+
 function drawPanel(r, g, b) {
     var grad0, grad2, gard4,
         x, y, z, view = getPanelView(), facz, facy, facx, vc,
@@ -542,9 +554,9 @@ function drawPanel(r, g, b) {
     panelCanvasCtx.fillStyle = "#555";
     panelCanvasCtx.fillRect(0, parseInt(195-y/facy*195), canvasSize, 1);
     panelCanvasCtx.fillRect(parseInt(x/facx*195), 0, 1, canvasSize);
-
 }
-function getBarColor(event) {        
+
+function getBarColor(event) {
     var xy = getXY(event, barCanvas, 6),
         y = minMax(1-(xy[1]/canvasSize), 0, 1),
         hsv = doApply(solveRGB, currentColor),
@@ -557,6 +569,7 @@ function getBarColor(event) {
     }
     return tmp;
 }
+
 function getPanelColor(event) {
     var xy = getXY(event, panelCanvas, 6),
         x = minMax((xy[0]/canvasSize), 0, 1),
@@ -583,19 +596,6 @@ function getPanelColor(event) {
     }
     return tmp;
 }
-barCanvas.mousedown(function(event) {
-    var tmp = getBarColor(event);
-    doSetCurrent(tmp);
-    doApply(drawPanel, tmp);
-    barDown = true;
-});
-
-panelCanvas.mousedown(function(event) {
-    var tmp = getPanelColor(event);
-    doSetCurrent(tmp);
-    doApply(drawPanel, tmp);
-    panelDown = true;
-});
 
 function updateColor(r, g, b, input) {
     currentColor = [r, g, b], newColor = currentColor;
@@ -609,11 +609,12 @@ function updateColor(r, g, b, input) {
         hexNode.value = getHex(r, g, b);
     }
     for(i in inputBoxes) {
-        if(input != inputBoxes[i][0].id && inputBoxes !== document.activeElement) {
-            inputBoxes[i].val(boxValues[i]);
+        if(input != inputBoxes[i].id && inputBoxes !== document.activeElement) {
+            inputBoxes[i].value = boxValues[i];
         }
     }
     doApply(drawPanel, currentColor);
-}    
-doApply(updateColor, currentColor);
+}
+
+startup();
 
