@@ -192,21 +192,21 @@ function startup() {
         });
     }
 
+    var palette = document.getElementById('p');
     for(i = 0; i < 6*36; i++) {
         if(i % 36 == 0) {
-            tmp = $(trTag);
-            $("#p").append(tmp);
+            tmp = document.createElement('tr');
+            palette.appendChild(tmp);
         }
         color = getHexColor(paletteColors, i);
-        td = $(tdTag, {
-            click: function (event) {
-                doApply(updateColor, getRGB(this.value));
-            }
+        td = document.createElement('td');
+        td.addEventListener('click', function (event) {
+               doApply(updateColor, getRGB(this.value));
         });
-        td[0].value = color;
-        td.css(bkground, color);
+        td.value = color;
+        td.style.backgroundColor = color;
         colorPaletteItem[color] = td;
-        td.appendTo(tmp); 
+        tmp.appendChild(td);
     }
 
     hexNode.addEventListener('keydown', function(event) {
@@ -232,7 +232,7 @@ function startup() {
     }
     $("#sc").append(tmp);
 
-    $("#v").click(function(event) {
+    document.getElementById("v").addEventListener('click', function(event) {
         var hex = doApply(getHex, currentColor);
         delete sessionStorage[hex];
         sessionStorage[hex] = sessionStorage.length ? getSessionVals()[0][0]+1 : 0;
@@ -337,11 +337,11 @@ function goodKey(code) {
 }
 
 function loadSaved() {
-    var values = getSessionVals(), key, tds = $("#sc td"), value;
+    var values = getSessionVals(), key, tds = document.getElementById('sc').getElementsByTagName('td'), value;
     for(i = 0; i < values.length; i++) {
         value = values[i][1];
         if(i < 17) {
-            $(tds[i]).css(bkground, value);
+            tds[i].style.backgroundColor = value;
             tds[i].value = value;
         } else {
             delete sessionStorage[value];
@@ -355,7 +355,7 @@ function getSessionVals() {
         key = sessionStorage.key(i);
         values.push([parseInt(sessionStorage[key]), key]);
     }
-    values.sort(function(x, y) { return y[0] - x[0] });
+    values.sort(function(x, y) { return y[0] - x[0]; });
     return values;
 }
 
@@ -478,12 +478,12 @@ function setCurrent(r1, g1, b1, r2, g2, b2) {
 }
 
 function setPalette(hex) {
-    var item = $("#sp"), pos = colorPaletteItem[hex], xy;
-    if(pos) {
-        xy = pos.position();
-        item.css({background: hex, left: xy.left-3,
-                  width: 16, height:16,
-                  top: xy.top-3, display: "block"});
+    var item = $("#sp"), pos = $(colorPaletteItem[hex]), xy;
+    xy = pos.position();
+    if(xy) {
+         item.css({background: hex, left: xy.left-3,
+              width: 16, height:16,
+              top: xy.top-3, display: "block"});
     } else {
         item.css("display", "none");
     }
