@@ -37,7 +37,6 @@ var wheel = document.getElementById("w"),
     hexChars = "0123456789ABCDEF",
     tmp,
     j,
-    inputTag = "<input/>",
     tdTag = "<td/>",
     trTag = "<tr/>",
     startView = 0,
@@ -478,14 +477,17 @@ function setCurrent(r1, g1, b1, r2, g2, b2) {
 }
 
 function setPalette(hex) {
-    var item = $("#sp"), pos = $(colorPaletteItem[hex]), xy;
-    xy = pos.position();
-    if(xy) {
-         item.css({background: hex, left: xy.left-3,
-              width: 16, height:16,
-              top: xy.top-3, display: "block"});
+    var item = document.getElementById("sp"), 
+        pos = colorPaletteItem[hex];
+    if(pos) {
+        item.style.backgroundColor = hex;
+        item.style.height = "16px";
+        item.style.width = "16px";
+        item.style.display = "block";
+        item.style.top = (pos.offsetTop + pos.offsetHeight - 2).toString() + "px";
+        item.style.left = (pos.offsetLeft - 4).toString() + "px";
     } else {
-        item.css("display", "none");
+        item.style.display = "none";
     }
 }
 
