@@ -37,8 +37,6 @@ var wheel = document.getElementById("w"),
     hexChars = "0123456789ABCDEF",
     tmp,
     j,
-    tdTag = "<td/>",
-    trTag = "<tr/>",
     startView = 0,
     chars = "0369CF",
     inputs = [["Hue", hueMax], ["Saturation", HSVmax], ["Value", HSVmax],
@@ -223,13 +221,15 @@ function startup() {
             doApply(updateColor, rgb);
         }
     });
-    tmp = $(trTag);
+    tmp = document.createElement('tr');
     for(i = 0; i < 17; i++) {
-        $(tdTag, {click: function(event) {
+        var cell = document.createElement('td');
+        cell.addEventListener('click', function(event) {
             if(this.value) doApply(updateColor, getRGB(this.value)); 
-        }}).appendTo(tmp);
+        }, false);
+        tmp.appendChild(cell);
     }
-    $("#sc").append(tmp);
+    document.getElementById("sc").appendChild(tmp);
 
     document.getElementById("v").addEventListener('click', function(event) {
         var hex = doApply(getHex, currentColor);
