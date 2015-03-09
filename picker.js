@@ -357,7 +357,10 @@ function startup() {
         tmp.appendChild(td);
     }
 
-    var colors = document.getElementById("nc").getElementsByTagName("option");
+    var colorSelect = document.getElementById("nc")
+    colorSelect.addEventListener('mouseup', selectChange, false);
+    colorSelect.addEventListener('keyup', selectChange, false);
+    var colors = colorSelect.getElementsByTagName("option");
     var colorSet = document.getElementById("ncd");
     for(i = 0; i < colors.length; i++) {
         var colorName = colors[i].getAttribute('value');
