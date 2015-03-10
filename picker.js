@@ -26,9 +26,8 @@ var wheel = document.getElementById("w"),
     canvasSize = 196,
     black = "#000",
     white = "#fff",
-    td,
     diffColor = [[0,-15], [15,-15], [15,0], [15,15], [0,15], [-15, 15], [-15, 0], [-15,-15]],
-    bkground = "background",
+
     currentColor = [RGBmax, 0, 0], 
     newColor = currentColor,
 
@@ -37,7 +36,6 @@ var wheel = document.getElementById("w"),
     hexChars = "0123456789ABCDEF",
     tmp,
     j,
-    startView = 0,
     chars = "0369CF",
     inputs = [["Hue", hueMax], ["Saturation", HSVmax], ["Value", HSVmax],
               ["Red", RGBmax], ["Green", RGBmax], ["Blue", RGBmax]],
@@ -309,11 +307,19 @@ function textBoxChange(target) {
 }
 
 function startup() {
-    var tmp = document.createElement("input");
-    tmp.setAttribute("type", "color");
+    setupInputs();
+    setupPalette();
+    setupNamedColors();
+    setupHexInput();
+    setUpSaved();
+    setWheelAndPanelEvents();
+    doApply(updateColor, currentColor);
+}
 
-    var div, label, radio, input,
-        func = function(event) { doApply(updateColor, textBoxChange(this)); };
+function setupInputs() {
+    function func(event) {
+        doApply(updateColor, textBoxChange(this));
+    };
     for(i in inputs) {
         var input = document.getElementById(inputIds[i]);
         input.addEventListener('keydown', function(event) {
@@ -339,7 +345,9 @@ function startup() {
             doApply(updateColor, currentColor); 
         });
     }
+}
 
+function setupPalette() {
     var palette = document.getElementById('p');
     for(i = 0; i < 6*36; i++) {
         if(i % 36 == 0) {
@@ -356,7 +364,9 @@ function startup() {
         colorPaletteItem[color] = td;
         tmp.appendChild(td);
     }
+}
 
+function setupNamedColors() {
     var colorSelect = document.getElementById("nc")
     colorSelect.addEventListener('mouseup', selectChange, false);
     colorSelect.addEventListener('keyup', selectChange, false);
@@ -368,7 +378,9 @@ function startup() {
             namedColorItems[colorNameToHex(colorName)] = colors[i];
         }
     }
+}
 
+function setupHexInput() {
     hexNode.addEventListener('keydown', function(event) {
         var code = event.keyCode;
         if(event.ctrlKey) {
@@ -384,6 +396,9 @@ function startup() {
             doApply(updateColor, rgb);
         }
     });
+}
+
+function setUpSaved() {
     tmp = document.createElement('tr');
     for(i = 0; i < 17; i++) {
         var cell = document.createElement('td');
@@ -401,7 +416,9 @@ function startup() {
         loadSaved();
     });
     loadSaved();
+}
 
+function setWheelAndPanelEvents() {
     wheel.addEventListener('mousedown', function (event) {
         var items = angleDistance(event, 104, wheel), tmp,
             angle = items[0], distance = items[1];
@@ -490,8 +507,6 @@ function startup() {
         doApply(drawPanel, tmp);
         panelDown = true;
     });
-
-    doApply(updateColor, currentColor);
 }
 
 function goodKey(code) {
@@ -798,6 +813,4 @@ function updateColor(r, g, b, input) {
     }
     doApply(drawPanel, currentColor);
 }
-
-startup();
 
