@@ -355,7 +355,7 @@ function setupPalette() {
             palette.appendChild(tmp);
         }
         color = getHexColor(paletteColors, i);
-        td = document.createElement('td');
+        var td = document.createElement('td');
         td.addEventListener('click', function (event) {
                doApply(updateColor, getRGB(this.value));
         });
@@ -367,7 +367,7 @@ function setupPalette() {
 }
 
 function setupNamedColors() {
-    var colorSelect = document.getElementById("nc")
+    var colorSelect = document.getElementById("nc");
     colorSelect.addEventListener('mouseup', selectChange, false);
     colorSelect.addEventListener('keyup', selectChange, false);
     var colors = colorSelect.getElementsByTagName("option");
@@ -550,7 +550,7 @@ function getXY(event, elem, offset) {
 }
 
 function angleDistance(event, center, elm) {
-    var xy = getXY(event, elm, center), x = xy[0], y = xy[1];
+    var xy = getXY(event, elm, center), x = xy[0], y = xy[1],
         angle = mod(Math.atan2(-y, x)/Math.PI*180, hueMax),
         distance = Math.sqrt(x*x+y*y);
     return [angle, distance];
@@ -678,7 +678,7 @@ function getPanelView() {
 }
 
 function drawPanel(r, g, b) {
-    var grad0, grad2, gard4,
+    var grad0, grad2, grad4,
         x, y, z, view = getPanelView(), facz, facy, facx, vc,
         hsv = solveRGB(r, g, b), h = hsv[0], s = hsv[1], v = hsv[2];
 
