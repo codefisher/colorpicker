@@ -1,0 +1,232 @@
+body {
+    font-family: Tahoma, Arial, Helvetica, sans-serif;
+    width:775px;
+    margin:0 auto;
+}
+
+#app {
+    width:775px;
+    min-width:775px;
+    margin:10px auto;
+    border:1px solid #ddd;
+    background:#f1f1f1;
+}
+
+h2 {
+    margin:0; padding:5px 10px;
+    border-bottom:1px solid #ddd;
+    font-size:18px;
+}
+
+#panels {
+    width:75px;
+    border-right:1px solid #ddd;
+}
+
+#panels ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    text-align: center;
+    font-weight: normal;
+    font-size: 0.75em;
+}
+
+#panels ul:first-child {
+    border-top: 1px solid #ffffff;
+}
+
+#panels li {
+    border-bottom: 1px solid #ffffff;
+}
+
+#panels li a {
+    color:#000000;
+    text-decoration: none;
+    outline: 0;
+    display:block;
+    padding:10px 0;
+}
+
+#panels li a:hover, #panels li a:active, #panels li a:focus {
+    background: #419ad6 linear-gradient(to bottom, #419ad6 0%,#26ACEF 41%,#3a8bc2 74%,#26558b 100%);
+    box-shadow: 0 0 2px 0 #000 inset;
+}
+
+#panels li a:hover img, #panels li a:active img, #panels li a:focus img {
+    filter: drop-shadow(0px 0px 5px #000);
+}
+
+#panels li:target {
+    background: #419ad6 linear-gradient(to bottom, #419ad6 0%,#26ACEF 41%,#3a8bc2 74%,#26558b 100%);
+    color: #ffffff;
+    text-shadow: #000000 1px 1px 1px;
+    box-shadow: 0 0 2px 0 #000 inset;
+}
+
+#panels li:target a {
+    color: #ffffff;
+}
+
+#panels li:target img {
+    filter: drop-shadow(0px 0px 5px #fff);
+}
+
+#panels img {
+    display:block;
+    margin:0 auto;
+}
+
+#panels #settings {
+    display:none;
+}
+
+#controls, #picker, #panels, #color_info {
+    border-top:1px solid #fff;
+    float:left;
+    padding:10px 0px;
+    height:475px;
+}
+
+#picker, #color_info {
+    width:480px;
+    padding:0 10px;
+    min-width:480px;
+}
+
+#controls {
+    width:195px;
+    border-right:1px solid #ddd;
+}
+
+#w, #cj, #ck, #c {
+    display:block;
+    padding:5px;
+    background:#f9f9f9;
+    border:1px solid #ddd;
+}
+
+#c {
+    margin:0 auto 5px;
+}
+
+#controls div:not(#i) {
+    padding:6px 10px;
+}
+
+#controls input[type='number'],
+#controls input[type='text']  {
+    float:right;
+    width:40px;
+}
+
+#controls #x {
+    width:80px;
+}
+
+input[type='radio'] {
+    margin-right:5px;
+}
+
+#fc>* {
+    display:block;
+    float:left;
+    margin:10px 5px;
+}
+
+h3 {
+    font-size:1em;
+    text-align:center;
+    text-shadow:#fff 1px 1px 0;
+    margin:10px;
+    clear:both;
+}
+#u, #l, #cj, #ck {
+    float:left;
+}
+#u {
+    width:226px;
+}
+
+#l {
+    width:242px;
+}
+
+#cj, #ck {
+    margin:0 0 10px;
+}
+
+#ck {
+    margin-left:0;
+    border-left-width:0;
+}
+
+#tp {
+    clear:both;
+    padding-top:15px;
+}
+
+table {
+    border-collapse:collapse;
+}
+td {
+    border:1px solid #fff;
+    width:10px; height:10px;
+}
+
+tr {
+    height:13px;
+}
+
+#sc td {
+    width:20px; height:20px;
+}
+
+.c {
+    clear:both;
+}
+
+#tp {
+    position:relative;
+    margin:10px 5px;
+}
+
+#sp {
+    border:1px solid #000;
+    position:absolute;
+}
+#d, #d a {
+    text-align:center;
+    color:#999;
+    font-size:12px
+}
+
+#color_info input {
+    background: #ffffff;
+    border:1px solid #ddd;
+}
+
+#css-colors div {
+    width:215px;
+    padding:10px;
+    display:inline-block;
+}
+
+#css-colors div input {
+    float:right;
+}
+
+#color-spaces div {
+    width:20%;
+    float:left;
+    box-sizing: border-box;
+    padding:5px;
+}
+
+#color-spaces label {
+    display:block;
+}
+
+#color-spaces input {
+    float:right;
+}
